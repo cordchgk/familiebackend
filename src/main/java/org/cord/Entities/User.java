@@ -7,6 +7,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 @Builder
 @AllArgsConstructor
@@ -87,5 +88,18 @@ public class User implements Serializable {
 
     public boolean notExists(){
         return this.getUserid() == 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(userid, user.userid);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

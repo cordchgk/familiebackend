@@ -3,11 +3,13 @@ package org.cord.REST.endpoints;
 
 import com.google.gson.Gson;
 import org.cord.Entities.User;
+import org.cord.REST.TestBean;
 import org.cord.daos.UserDao;
 import system.converter.ToJSON;
 import system.converter.HashConverter;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -23,28 +25,41 @@ public class UserEndpoint {
 
     UserDao userDao;
 
+
+    @Inject
+    TestBean testBean;
+
+
     @PostConstruct
     public void init() {
         this.userDao = new UserDao();
+
 
     }
 
     @GET
     @Path("/get")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUserByApiToken(@Context HttpHeaders httpHeaders) {
+    public Response getUserByApiToken(@Context HttpHeaders httpHeaders) {
+
 
 
         String api = httpHeaders.getHeaderString("api-token");
 
-        if (api == null) {
 
+        if (api == null) {
             return null;
         } else {
-            UserDao userDao = new UserDao();
-            User user = userDao.getByToken(api);
 
-            return ToJSON.toJSON(user);
+            User user = this.userDao.getByToken(api);
+            if (user.notExists()){
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }else{
+                return Response.ok(user).header("api-token",api).build();
+            }
+
+
+
         }
 
     }
@@ -56,8 +71,12 @@ public class UserEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response login(String userJson, @Context HttpHeaders httpHeaders) {
 
+        testBean.add();
 
         User user = this.getUserFromJson(userJson);
+        if (user == null){
+            return Response.status(401).build();
+        }
 
         try {
             user.setPassword(HashConverter.sha384(user.getPassword()));

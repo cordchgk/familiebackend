@@ -30,22 +30,29 @@ public class UserDao {
         this.createManager();
 
         Query query = this.entityManager.createNativeQuery("SELECT * FROM users u WHERE u.apitoken = ?", User.class);
+        query.setParameter(1, token);
 
+        User toReturn = new User();
+        toReturn.setUserid(0);
 
-        List<User> results = query.setParameter(1, token).getResultList();
+        try {
+            toReturn = (User) query.getSingleResult();
+        } catch (NoResultException ignored) {
+
+        }
 
 
         this.entityManager.close();
         this.entityManagerFactory.close();
-        return results.get(0);
+        return toReturn;
     }
 
 
-    public User getById(User user){
+    public User getById(User user) {
 
         this.createManager();
 
-        user = this.entityManager.find(User.class,user.getUserid());
+        user = this.entityManager.find(User.class, user.getUserid());
 
         this.entityManager.close();
         this.entityManagerFactory.close();
@@ -58,6 +65,7 @@ public class UserDao {
         this.createManager();
         Query query = this.entityManager.createNativeQuery("SELECT * FROM users", User.class);
         List<User> toReturn = query.getResultList();
+
 
         this.entityManager.close();
         this.entityManagerFactory.close();

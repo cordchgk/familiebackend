@@ -22,7 +22,7 @@ public class ToJSON {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        return json + "\n" + "<br>";
+        return json;
     }
 
 }
