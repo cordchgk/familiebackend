@@ -78,11 +78,14 @@ public class UserEndpoint {
             String userJson,
             @Context HttpHeaders httpHeaders) {
 
+        System.out.println(userJson);
+
         User user = (User) JsonToObject.getObjectFromJson(
                 userJson,
                 User.class);
         if(user == null) {
             return Response.status(401)
+
                            .build();
         }
 
@@ -91,24 +94,35 @@ public class UserEndpoint {
         } catch(UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-
+        this.userDao.createManager();
         user = this.userDao.getByCredentials(user);
 
         if(user.notExists()) {
             return Response.status(401)
+
                            .build();
         }
         else {
             user = this.userDao.updateToken(user);
 
-            return Response.ok(user)
-                           .header(
-                                   "apitoken",
+            return Response.status(200)
+                           .header("apitoken",
                                    user.getApitoken())
+                           .entity(user)
                            .build();
 
         }
 
+    }
+
+
+    @OPTIONS
+    @Path("{path : .*}")
+    public Response options() {
+
+        return Response.ok("")
+
+                       .build();
     }
 
 
@@ -128,9 +142,8 @@ public class UserEndpoint {
                 User.class,
                 this.userDao.getEntityManager());
 
-        User userToCompare = this.userDao.getByToken(httpHeaders.getHeaderString("api-token"));
-
-        if(userToCompare.equals(user)) {
+        if(httpHeaders.getHeaderString("api-token")
+                      .equals(user.getApitoken())) {
             return Response.ok(user)
                            .build();
         }
@@ -199,6 +212,8 @@ public class UserEndpoint {
 
         this.userDao.deleteUser(userToRemove);
 
+        return Response.ok()
+                       .build();
     }
 
 

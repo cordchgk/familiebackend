@@ -5,7 +5,7 @@
              version="2.2">
     <persistence-unit name="default">
         <class>org.cord.Entities.User</class>
-        <class>org.cord.Entities.Item</class>
+
         <properties>
             <property name="eclipselink.logging.level" value="SEVERE"/>
             <property name="eclipselink.jpa.uppercase-column-names" value="true"/>

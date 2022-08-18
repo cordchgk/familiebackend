@@ -2,8 +2,6 @@ package org.cord.daos;
 
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.lang.reflect.Field;
 
 public interface DAO<T> {
@@ -11,7 +9,8 @@ public interface DAO<T> {
 
     default T getById(
             Object obj,
-            Class c,EntityManager entityManagerI) {
+            Class c,
+            EntityManager entityManagerI) {
 
         int id;
 
@@ -30,6 +29,7 @@ public interface DAO<T> {
                 c,
                 id);
 
+       // entityManagerI.getEntityManagerFactory().getCache().evictAll();
         return (T) toReturn;
 
     }

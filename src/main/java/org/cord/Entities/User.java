@@ -1,13 +1,11 @@
 package org.cord.Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
+import java.sql.Date;
 
 @Builder
 @AllArgsConstructor
@@ -54,9 +52,8 @@ public class User implements Serializable {
     private String apitoken;
 
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Item> items;
+    @Column(name = "birthday")
+    private Date birthday;
 
 
     public User(
@@ -111,7 +108,6 @@ public class User implements Serializable {
     @Override
     public boolean equals(Object o) {
 
-
         User user = (User) o;
         return this.id == user.id;
     }
@@ -122,8 +118,6 @@ public class User implements Serializable {
 
         return getClass().hashCode();
     }
-
-
 
 
 }
