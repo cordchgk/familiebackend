@@ -50,7 +50,7 @@ public class UserDao extends EMCreator implements DAO, Serializable {
                      .commit();
 
         User toReturn = this.getByCredentials(user);
-        this.close();
+
 
         return !toReturn.notExists();
     }
@@ -85,7 +85,7 @@ public class UserDao extends EMCreator implements DAO, Serializable {
                 User.class);
         List<User> toReturn = query.getResultList();
 
-        this.close();
+
 
         return toReturn;
 
@@ -113,7 +113,7 @@ public class UserDao extends EMCreator implements DAO, Serializable {
 
         }
 
-        this.close();
+
         return toReturn;
     }
 
@@ -187,14 +187,7 @@ public class UserDao extends EMCreator implements DAO, Serializable {
                                              .equals(toUpdate.getAddress())) {
             toUpdate.setAddress(user.getAddress());
         }
-        try {
-            if(user.getPassword() != null && !HashConverter.sha384(user.getPassword())
-                                                           .equals(toUpdate.getPassword())) {
-                toUpdate.setPassword(HashConverter.sha384(user.getPassword()));
-            }
-        } catch(UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+
 
         this.entityManager.getTransaction()
                           .commit();
@@ -203,7 +196,7 @@ public class UserDao extends EMCreator implements DAO, Serializable {
                 User.class,
                 toUpdate.getId());
 
-        this.close();
+
 
         return toReturn;
     }

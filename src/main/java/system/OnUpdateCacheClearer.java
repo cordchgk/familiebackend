@@ -3,7 +3,6 @@ package system;
 
 import io.quarkus.runtime.Startup;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Singleton;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,8 +26,10 @@ public class OnUpdateCacheClearer {
         }
 
 
-        Listener listener = new Listener(lConn);
+        UserUpdateListener listener = new UserUpdateListener(lConn);
         listener.start();
+        GroupUpdateListener groupUpdateListener = new GroupUpdateListener(lConn);
+        groupUpdateListener.start();
     }
 
 }

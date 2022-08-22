@@ -1,9 +1,12 @@
 package org.cord.rest.endpoints;
 
 
+import io.netty.handler.codec.http.cookie.CookieHeaderNames;
 import org.cord.Entities.User;
 import org.cord.daos.DAO;
+import org.cord.daos.GroupDao;
 import org.cord.daos.UserDao;
+import org.jboss.weld.context.http.Http;
 import system.converter.HashConverter;
 import system.converter.JsonToObject;
 
@@ -11,12 +14,12 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
+import javax.xml.crypto.dsig.spec.XPathFilterParameterSpec;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+
 
 @Path("/user")
 @RequestScoped
@@ -33,7 +36,7 @@ public class UserEndpoint {
     @PostConstruct
     public void init() {
 
-        this.DAO = userDao;
+        this.DAO = new GroupDao();
     }
 
 
@@ -46,6 +49,7 @@ public class UserEndpoint {
         User user = (User) JsonToObject.getObjectFromJson(
                 newUser,
                 User.class);
+
         try {
             user.setPassword(HashConverter.sha384(user.getPassword()));
         } catch(UnsupportedEncodingException | NoSuchAlgorithmException e) {
@@ -57,9 +61,11 @@ public class UserEndpoint {
                            .build();
         }
         else {
+
             this.userDao.createNewUser(user);
             this.userDao.updateToken(user);
 
+            user = this.userDao.getByCredentials(user);
             return Response.ok(user)
                            .header(
                                    "apitoken",
@@ -77,8 +83,6 @@ public class UserEndpoint {
     public Response login(
             String userJson,
             @Context HttpHeaders httpHeaders) {
-
-        System.out.println(userJson);
 
         User user = (User) JsonToObject.getObjectFromJson(
                 userJson,
@@ -106,11 +110,40 @@ public class UserEndpoint {
             user = this.userDao.updateToken(user);
 
             return Response.status(200)
-                           .header("apitoken",
-                                   user.getApitoken())
+                           .header(
+                                   "Set-Cookie", "apitoken=" + user.getApitoken() + "; HttpOnly; SameSite=None")
+                           .header(
+                    "apitoken",
+                    user.getApitoken()).entity(user)
+                                       .build();
+
+        }
+
+    }
+
+
+    @GET
+    @Path("/logout")
+    public Response logout(
+            @Context HttpHeaders httpHeaders) {
+
+        String api = httpHeaders.getHeaderString("apitoken");
+
+        User user = new User();
+
+        user = this.userDao.getByToken(api);
+        user.setApitoken("");
+        if(!user.notExists()) {
+
+            this.userDao.updateUser(user);
+            user = new User();
+            return Response.ok()
                            .entity(user)
                            .build();
-
+        }
+        else {
+            return Response.status(401)
+                           .build();
         }
 
     }
@@ -158,10 +191,12 @@ public class UserEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserByToken(@Context HttpHeaders httpHeaders) {
 
-        String api = httpHeaders.getHeaderString("api-token");
 
-        if(api == null) {
-            return null;
+        String api = httpHeaders.getHeaderString("apitoken");
+
+        if(api == null || api.equals("")) {
+            return Response.status(401)
+                           .build();
         }
         else {
 
@@ -198,6 +233,13 @@ public class UserEndpoint {
                                "apitoken",
                                toReturn.getApitoken())
                        .build();
+
+
+
+
+
+
+
     }
 
 

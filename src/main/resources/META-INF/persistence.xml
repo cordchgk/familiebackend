@@ -5,6 +5,7 @@
              version="2.2">
     <persistence-unit name="default">
         <class>org.cord.Entities.User</class>
+        <class>org.cord.Entities.Group</class>
 
         <properties>
             <property name="eclipselink.logging.level" value="SEVERE"/>
@@ -13,6 +14,10 @@
             <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/postgres"/>
             <property name="javax.persistence.jdbc.user" value="postgres"/>
             <property name="javax.persistence.jdbc.password" value="Blasbara123?!"/>
+            <property name="eclipselink.jdbc.url" value="jdbc:postgresql://localhost:5432/postgres"/>
+            <property name="eclipselink.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="eclipselink.jdbc.user" value="postgres"/>
+            <property name="eclipselink.jdbc.password" value="Blasbara123?!"/>
         </properties>
     </persistence-unit>
 </persistence>

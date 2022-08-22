@@ -6,6 +6,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Date;
+import java.util.Set;
 
 @Builder
 @AllArgsConstructor
@@ -54,6 +55,12 @@ public class User implements Serializable {
 
     @Column(name = "birthday")
     private Date birthday;
+
+
+    @ManyToMany
+    @JoinTable(name = "memberofgroup", joinColumns = @JoinColumn(name = "uid"),
+            inverseJoinColumns = @JoinColumn(name = "gid"))
+    private Set<Group> gruppe;
 
 
     public User(

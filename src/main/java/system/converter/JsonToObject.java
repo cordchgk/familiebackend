@@ -10,8 +10,9 @@ public final class JsonToObject<T> {
             Class c) {
 
         Gson gson = new Gson();
-        Object toReturn = gson.fromJson(json,
-                                        c);
+        Object toReturn = gson.fromJson(
+                json,
+                c);
         return toReturn;
     }
 

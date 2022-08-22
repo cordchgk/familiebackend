@@ -11,7 +11,7 @@ import java.sql.Statement;
 import java.util.Objects;
 
 
-class Listener extends Thread {
+class UserUpdateListener extends Thread {
 
 
     private final EMFactoryCreator emFactoryCreator;
@@ -23,12 +23,13 @@ class Listener extends Thread {
     private final org.postgresql.PGConnection pgconn;
 
 
-    Listener(Connection connection) throws SQLException {
+    UserUpdateListener(Connection connection) throws SQLException {
 
         this.connection = connection;
         this.pgconn = (org.postgresql.PGConnection) connection;
         try(Statement stmt = connection.createStatement()) {
             stmt.execute("LISTEN userid");
+
         }
         this.emFactoryCreator = EMFactoryCreator.getInstance();
     }
