@@ -25,6 +25,22 @@ public class ToJSON {
         return json;
     }
 
+    public static @NotNull String customObjectMappertoJSON(Object o,ObjectMapper objectMapper) {
+
+
+
+        String json = null;
+        try {
+
+            json = objectMapper.writeValueAsString(o);
+
+        } catch(JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+
 
 }
 

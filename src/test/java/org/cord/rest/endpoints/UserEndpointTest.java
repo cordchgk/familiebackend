@@ -2,7 +2,7 @@ package org.cord.rest.endpoints;
 
 
 import io.quarkus.test.junit.QuarkusTest;
-import org.cord.Entities.User;
+import org.cord.Entities.UserEntity;
 import org.cord.daos.DAO;
 import org.cord.daos.UserDao;
 import org.junit.jupiter.api.Test;
@@ -10,6 +10,7 @@ import system.converter.HashConverter;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 
 import static io.restassured.RestAssured.given;
 
@@ -117,14 +118,18 @@ class UserEndpointTest {
 
         UserDao userDao = new UserDao();
 
-        User user;
+        UserEntity user;
 
         try {
-            user = new User("cord.ch@hotmail.de", HashConverter.sha384("Blasbara123?!"), "Cord", "Göken");
+            user = new UserEntity("cord.ch@hotmail.de", HashConverter.sha384("Blasbara123?!"), "Cord", "Göken");
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        userDao.createNewUser(user);
+        try {
+            userDao.createNewUser(user);
+        } catch(SQLException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -135,11 +140,11 @@ class UserEndpointTest {
         DAO dao = userDao;
         userDao.createManager();
 
-        User user = new User();
+        UserEntity user = new UserEntity();
         user.setId(1);
-        user = (User) dao.getById(
+        user = (UserEntity) dao.getById(
                 user,
-                User.class,
+                UserEntity.class,
                 userDao.getEntityManager());
         return user.getApitoken();
     }

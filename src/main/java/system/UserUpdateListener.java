@@ -1,7 +1,7 @@
 package system;
 
 
-import org.cord.Entities.User;
+import org.cord.Entities.UserEntity;
 import org.cord.daos.EMFactoryCreator;
 
 import java.sql.Connection;
@@ -60,13 +60,13 @@ class UserUpdateListener extends Thread {
                 org.postgresql.PGNotification[] notifications = pgconn.getNotifications();
                 if(Objects.nonNull(notifications)) {
                     for(org.postgresql.PGNotification notification : notifications) {
-                        User user = new User();
+                        UserEntity user = new UserEntity();
                         user.setId(Integer.parseInt(notification.getParameter()));
 
                         emFactoryCreator.getEntityManagerFactory()
                                         .getCache()
                                         .evict(
-                                                User.class,
+                                                UserEntity.class,
                                                 user.getId());
 
                     }

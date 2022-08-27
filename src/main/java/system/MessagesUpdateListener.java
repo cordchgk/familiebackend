@@ -1,8 +1,10 @@
 package system;
 
 
-import org.cord.Entities.GroupEntity;
+import org.cord.Entities.MessageEntity;
 import org.cord.daos.EMFactoryCreator;
+import org.cord.daos.MessageDao;
+import system.websockets.NotificationSocket;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -11,7 +13,10 @@ import java.sql.Statement;
 import java.util.Objects;
 
 
-class GroupUpdateListener extends Thread {
+class MessagesUpdateListener extends Thread {
+
+
+    NotificationSocket notificationSocket;
 
 
     private final EMFactoryCreator emFactoryCreator;
@@ -23,12 +28,13 @@ class GroupUpdateListener extends Thread {
     private final org.postgresql.PGConnection pgconn;
 
 
-    GroupUpdateListener(Connection connection) throws SQLException {
+    MessagesUpdateListener(Connection connection) throws SQLException {
 
+        this.notificationSocket = NotificationSocket.getInstance();
         this.connection = connection;
         this.pgconn = (org.postgresql.PGConnection) connection;
         try(Statement stmt = connection.createStatement()) {
-            stmt.execute("LISTEN gid");
+            stmt.execute("LISTEN mid");
 
         }
         this.emFactoryCreator = EMFactoryCreator.getInstance();
@@ -37,7 +43,8 @@ class GroupUpdateListener extends Thread {
 
     public void start() {
 
-        if(thread == null) {
+        if(thread
+                == null) {
             thread = new Thread(this);
             thread.start();
         }
@@ -60,20 +67,26 @@ class GroupUpdateListener extends Thread {
                 org.postgresql.PGNotification[] notifications = pgconn.getNotifications();
                 if(Objects.nonNull(notifications)) {
                     for(org.postgresql.PGNotification notification : notifications) {
-                        GroupEntity group = new GroupEntity();
-                        group.setId(Integer.parseInt(notification.getParameter()));
+                        MessageEntity message = new MessageEntity();
+                        message.setId(Integer.parseInt(notification.getParameter()));
 
+                        MessageDao messageDao = new MessageDao();
+                        message = (MessageEntity) messageDao.getById(message,
+                                                                     MessageEntity.class,
+                                                                     messageDao.getEntityManager());
+
+                        this.notificationSocket.broadcastMessage(message);
                         emFactoryCreator.getEntityManagerFactory()
                                         .getCache()
                                         .evict(
-                                                GroupEntity.class,
-                                                group.getId());
+                                                MessageEntity.class,
+                                                message.getId());
 
                     }
 
                 }
 
-                // wait a while before checking again for new notifications
+
                 Thread.sleep(500);
             } catch(SQLException sqle) {
                 sqle.printStackTrace();

@@ -13,7 +13,7 @@ import java.util.Set;
 @Setter
 @Entity(name = "Group")
 @Table(name = "gruppe")
-public class Group implements Serializable {
+public class GroupEntity implements Serializable {
 
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,7 +31,7 @@ public class Group implements Serializable {
 
     @ManyToMany(mappedBy = "gruppe")
     @JsonIgnore
-    private Set<User> users;
+    private Set<UserEntity> users;
 
 
     @Override

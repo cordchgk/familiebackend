@@ -15,7 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity(name = "User")
-public class User implements Serializable {
+public class UserEntity implements Serializable {
 
 
     @Column(name = "userid")
@@ -58,12 +58,11 @@ public class User implements Serializable {
 
 
     @ManyToMany
-    @JoinTable(name = "memberofgroup", joinColumns = @JoinColumn(name = "uid"),
-            inverseJoinColumns = @JoinColumn(name = "gid"))
-    private Set<Group> gruppe;
+    @JoinTable(name = "memberofgroup", joinColumns = @JoinColumn(name = "uid"), inverseJoinColumns = @JoinColumn(name = "gid"))
+    private Set<GroupEntity> gruppe;
 
 
-    public User(
+    public UserEntity(
             String email,
             String password,
             String firstname,
@@ -93,6 +92,8 @@ public class User implements Serializable {
                      .append("\n");
         stringBuilder.append(this.address)
                      .append("\n");
+        stringBuilder.append(this.birthday)
+                     .append("\n");
         stringBuilder.append(this.verificationhash)
                      .append("\n");
         stringBuilder.append(this.accountstatus)
@@ -115,7 +116,7 @@ public class User implements Serializable {
     @Override
     public boolean equals(Object o) {
 
-        User user = (User) o;
+        UserEntity user = (UserEntity) o;
         return this.id == user.id;
     }
 

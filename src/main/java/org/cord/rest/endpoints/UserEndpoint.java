@@ -1,12 +1,10 @@
 package org.cord.rest.endpoints;
 
 
-import io.netty.handler.codec.http.cookie.CookieHeaderNames;
-import org.cord.Entities.User;
+import org.cord.Entities.UserEntity;
 import org.cord.daos.DAO;
 import org.cord.daos.GroupDao;
 import org.cord.daos.UserDao;
-import org.jboss.weld.context.http.Http;
 import system.converter.HashConverter;
 import system.converter.JsonToObject;
 
@@ -15,10 +13,9 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import javax.xml.crypto.dsig.spec.XPathFilterParameterSpec;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 
 
 @Path("/user")
@@ -46,9 +43,23 @@ public class UserEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUser(String newUser) {
 
-        User user = (User) JsonToObject.getObjectFromJson(
+        UserEntity user = (UserEntity) JsonToObject.getObjectFromJson(
                 newUser,
-                User.class);
+                UserEntity.class);
+
+        if(user.getEmail()
+                == null
+                | user.getPassword()
+                == null
+                | user.getFirstname()
+                == null
+                | user.getSurname()
+                == null
+                | user.getPassword()
+                == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                           .build();
+        }
 
         try {
             user.setPassword(HashConverter.sha384(user.getPassword()));
@@ -56,22 +67,20 @@ public class UserEndpoint {
             throw new RuntimeException(e);
         }
 
-        if(user.getEmail() == null | user.getPassword() == null | user.getFirstname() == null | user.getSurname() == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                           .build();
-        }
-        else {
-
+        try {
             this.userDao.createNewUser(user);
-            this.userDao.updateToken(user);
-
-            user = this.userDao.getByCredentials(user);
-            return Response.ok(user)
-                           .header(
-                                   "apitoken",
-                                   user.getApitoken())
+        } catch(SQLException e) {
+            return Response.status(409)
                            .build();
         }
+        this.userDao.updateToken(user);
+
+        user = this.userDao.getByCredentials(user);
+        return Response.ok(user)
+                       .header(
+                               "apitoken",
+                               user.getApitoken())
+                       .build();
 
     }
 
@@ -84,10 +93,11 @@ public class UserEndpoint {
             String userJson,
             @Context HttpHeaders httpHeaders) {
 
-        User user = (User) JsonToObject.getObjectFromJson(
+        UserEntity user = (UserEntity) JsonToObject.getObjectFromJson(
                 userJson,
-                User.class);
-        if(user == null) {
+                UserEntity.class);
+        if(user
+                == null) {
             return Response.status(401)
 
                            .build();
@@ -111,11 +121,15 @@ public class UserEndpoint {
 
             return Response.status(200)
                            .header(
-                                   "Set-Cookie", "apitoken=" + user.getApitoken() + "; HttpOnly; SameSite=None")
+                                   "Set-Cookie",
+                                   "apitoken="
+                                           + user.getApitoken()
+                                           + "; HttpOnly; SameSite=None")
                            .header(
-                    "apitoken",
-                    user.getApitoken()).entity(user)
-                                       .build();
+                                   "apitoken",
+                                   user.getApitoken())
+                           .entity(user)
+                           .build();
 
         }
 
@@ -129,14 +143,14 @@ public class UserEndpoint {
 
         String api = httpHeaders.getHeaderString("apitoken");
 
-        User user = new User();
+        UserEntity user = new UserEntity();
 
         user = this.userDao.getByToken(api);
         user.setApitoken("");
         if(!user.notExists()) {
 
             this.userDao.updateUser(user);
-            user = new User();
+            user = new UserEntity();
             return Response.ok()
                            .entity(user)
                            .build();
@@ -167,12 +181,12 @@ public class UserEndpoint {
             @Context HttpHeaders httpHeaders,
             String userJson) {
 
-        User user = (User) JsonToObject.getObjectFromJson(
+        UserEntity user = (UserEntity) JsonToObject.getObjectFromJson(
                 userJson,
-                User.class);
-        user = (User) this.DAO.getById(
+                UserEntity.class);
+        user = (UserEntity) this.DAO.getById(
                 user,
-                User.class,
+                UserEntity.class,
                 this.userDao.getEntityManager());
 
         if(httpHeaders.getHeaderString("api-token")
@@ -191,16 +205,17 @@ public class UserEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserByToken(@Context HttpHeaders httpHeaders) {
 
-
         String api = httpHeaders.getHeaderString("apitoken");
 
-        if(api == null || api.equals("")) {
+        if(api
+                == null
+                || api.equals("")) {
             return Response.status(401)
                            .build();
         }
         else {
 
-            User user = this.userDao.getByToken(api);
+            UserEntity user = this.userDao.getByToken(api);
             if(user.notExists()) {
                 return Response.status(Response.Status.UNAUTHORIZED)
                                .build();
@@ -224,21 +239,15 @@ public class UserEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(String user) {
 
-        User toReturn = this.userDao.updateUser((User) JsonToObject.getObjectFromJson(
+        UserEntity toReturn = this.userDao.updateUser((UserEntity) JsonToObject.getObjectFromJson(
                 user,
-                User.class));
+                UserEntity.class));
 
         return Response.ok(toReturn)
                        .header(
                                "apitoken",
                                toReturn.getApitoken())
                        .build();
-
-
-
-
-
-
 
     }
 
@@ -248,9 +257,9 @@ public class UserEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteUser(String user) {
 
-        User userToRemove = (User) JsonToObject.getObjectFromJson(
+        UserEntity userToRemove = (UserEntity) JsonToObject.getObjectFromJson(
                 user,
-                User.class);
+                UserEntity.class);
 
         this.userDao.deleteUser(userToRemove);
 

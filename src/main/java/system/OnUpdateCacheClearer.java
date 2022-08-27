@@ -13,23 +13,46 @@ import java.sql.SQLException;
 public class OnUpdateCacheClearer {
 
 
-
     public OnUpdateCacheClearer() throws SQLException {
 
-
         String url = "jdbc:postgresql://localhost:5432/postgres";
-        Connection lConn = null;
+        Connection userListenerConnection = null;
         try {
-            lConn = DriverManager.getConnection(url, "postgres", "Blasbara123?!");
+            userListenerConnection = DriverManager.getConnection(
+                    url,
+                    "postgres",
+                    "Blasbara123?!");
         } catch(SQLException e) {
             throw new RuntimeException(e);
         }
 
+        Connection groupListenerConnection = null;
+        try {
+            groupListenerConnection = DriverManager.getConnection(
+                    url,
+                    "postgres",
+                    "Blasbara123?!");
+        } catch(SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-        UserUpdateListener listener = new UserUpdateListener(lConn);
+        Connection messagesListenerConnection = null;
+        try {
+            messagesListenerConnection = DriverManager.getConnection(
+                    url,
+                    "postgres",
+                    "Blasbara123?!");
+        } catch(SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        UserUpdateListener listener = new UserUpdateListener(userListenerConnection);
         listener.start();
-        GroupUpdateListener groupUpdateListener = new GroupUpdateListener(lConn);
+        GroupUpdateListener groupUpdateListener = new GroupUpdateListener(groupListenerConnection);
         groupUpdateListener.start();
+        MessagesUpdateListener messagesUpdateListener = new MessagesUpdateListener(messagesListenerConnection);
+        messagesUpdateListener.start();
     }
+
 
 }

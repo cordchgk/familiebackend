@@ -2,8 +2,7 @@ package org.cord.daos;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.cord.Entities.User;
-import system.converter.HashConverter;
+import org.cord.Entities.UserEntity;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -11,8 +10,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Random;
 
@@ -23,7 +21,7 @@ import java.util.Random;
 public class UserDao extends EMCreator implements DAO, Serializable {
 
 
-    User user;
+    UserEntity user;
 
 
     @PostConstruct
@@ -41,35 +39,39 @@ public class UserDao extends EMCreator implements DAO, Serializable {
     }
 
 
-    public boolean createNewUser(User user) {
+    public boolean createNewUser(UserEntity user) throws SQLException {
 
-        this.entityManager.getTransaction()
-                          .begin();
-        entityManager.persist(user);
-        entityManager.getTransaction()
-                     .commit();
+        try {
+            this.entityManager.getTransaction()
+                              .begin();
+            entityManager.persist(user);
+            entityManager.getTransaction()
+                         .commit();
 
-        User toReturn = this.getByCredentials(user);
+        } catch(Exception e) {
+            throw new SQLException();
+        }
 
+        UserEntity toReturn = this.getByCredentials(user);
 
         return !toReturn.notExists();
     }
 
 
-    public User getByToken(String token) {
+    public UserEntity getByToken(String token) {
 
         Query query = this.entityManager.createNativeQuery(
                 "SELECT * FROM users u WHERE u.apitoken = ?",
-                User.class);
+                UserEntity.class);
         query.setParameter(
                 1,
                 token);
 
-        User toReturn = new User();
+        UserEntity toReturn = new UserEntity();
         toReturn.setId(0);
 
         try {
-            toReturn = (User) query.getSingleResult();
+            toReturn = (UserEntity) query.getSingleResult();
         } catch(NoResultException ignored) {
 
         }
@@ -78,26 +80,27 @@ public class UserDao extends EMCreator implements DAO, Serializable {
     }
 
 
-    public List<User> getAllUsers() {
+    public List<UserEntity> getAllUsers() {
 
         Query query = this.entityManager.createNativeQuery(
                 "SELECT * FROM users",
-                User.class);
-        List<User> toReturn = query.getResultList();
-
-
+                UserEntity.class);
+        List<UserEntity> toReturn = query.getResultList();
 
         return toReturn;
 
     }
 
 
-    public User getByCredentials(User user) {
+
+
+
+    public UserEntity getByCredentials(UserEntity user) {
 
         this.createManager();
         Query query = entityManager.createNativeQuery(
                 "SELECT * FROM users WHERE email = ? AND password = ?",
-                User.class);
+                UserEntity.class);
         query.setParameter(
                 1,
                 user.getEmail());
@@ -105,20 +108,19 @@ public class UserDao extends EMCreator implements DAO, Serializable {
                 2,
                 user.getPassword());
 
-        User toReturn = new User();
+        UserEntity toReturn = new UserEntity();
 
         try {
-            toReturn = (User) query.getSingleResult();
+            toReturn = (UserEntity) query.getSingleResult();
         } catch(NoResultException ignored) {
 
         }
-
 
         return toReturn;
     }
 
 
-    public User updateToken(User user1) {
+    public UserEntity updateToken(UserEntity user1) {
 
         this.createManager();
         this.user = user1;
@@ -130,7 +132,7 @@ public class UserDao extends EMCreator implements DAO, Serializable {
         updateUniqueUserToken(generatedString);
 
         this.user = this.entityManager.find(
-                User.class,
+                UserEntity.class,
                 this.user.getId());
 
         return this.user;
@@ -167,10 +169,10 @@ public class UserDao extends EMCreator implements DAO, Serializable {
     }
 
 
-    public User updateUser(User user) {
+    public UserEntity updateUser(UserEntity user) {
 
-        User toUpdate = this.entityManager.find(
-                User.class,
+        UserEntity toUpdate = this.entityManager.find(
+                UserEntity.class,
                 user.getId());
 
         this.entityManager.getTransaction()
@@ -188,21 +190,18 @@ public class UserDao extends EMCreator implements DAO, Serializable {
             toUpdate.setAddress(user.getAddress());
         }
 
-
         this.entityManager.getTransaction()
                           .commit();
 
-        User toReturn = this.entityManager.find(
-                User.class,
+        UserEntity toReturn = this.entityManager.find(
+                UserEntity.class,
                 toUpdate.getId());
-
-
 
         return toReturn;
     }
 
 
-    public void deleteUser(User user) {
+    public void deleteUser(UserEntity user) {
 
     }
 
@@ -210,10 +209,10 @@ public class UserDao extends EMCreator implements DAO, Serializable {
     @Override
     public Object deleteById(Object obj) {
 
-        this.user = (User) obj;
+        this.user = (UserEntity) obj;
 
-        User toRemove = this.entityManager.find(
-                User.class,
+        UserEntity toRemove = this.entityManager.find(
+                UserEntity.class,
                 user.getId());
 
         this.entityManager.getTransaction()

@@ -3,6 +3,7 @@ package system;
 
 import io.quarkus.runtime.Startup;
 import org.cord.daos.EMFactoryCreator;
+import system.websockets.NotificationSocket;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
@@ -17,6 +18,7 @@ public class Lifecycle {
     public void init() {
 
         EMFactoryCreator.getInstance();
+        NotificationSocket.getInstance();
 
     }
 
